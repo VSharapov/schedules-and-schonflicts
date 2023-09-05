@@ -1,0 +1,6 @@
+discord.py
+python-dateutil
+pandas
+arrow
+pendulum
+dateparser
