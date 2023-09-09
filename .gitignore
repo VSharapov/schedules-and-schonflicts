@@ -1,4 +1,6 @@
 __pycache__/
 venv/
 
+DISCORD_AUTH_TOKEN.env
+
 saved-*.json

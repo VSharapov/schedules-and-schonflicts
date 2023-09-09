@@ -41,19 +41,23 @@ Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Ea
 - NEXT: thumbs up logic
 
 
-## How to?
+## Setup
 
 - Find instructions on how to make a discord bot, get to the point where you have a token.
-- `virtualenv venv`
-- `source ./venv/bin/activate`
-- `pip install -r requirements.txt`
-- set SNS_DISCORD_AUTH_TOKEN e.g.:
-  - `${EDITOR:-vi} ~/set-SNS_DISCORD_AUTH_TOKEN.source.sh`
-  - write `export SNS_DISCORD_AUTH_TOKEN="yourToken"`
-  - `source ~/set-SNS_DISCORD_AUTH_TOKEN.source.sh`
-- run `./s-n-s-bot.py`
-  - I like making it reload on save when developing:  
-  `while true; do ./s-n-s-bot.py & inotifywait -e modify s-n-s-bot.py; kill $(jobs -p); done`
+- ```bash
+  K=DISCORD_AUTH_TOKEN; read -p "$K=" && echo "$K=$REPLY" > $K.env`\
+  virtualenv venv
+  source ./venv/bin/activate
+  pip install -r requirements.txt
+  ```
+- I like making it reload on save when developing:  
+  ```bash
+  while true; do ./s-n-s-bot.py & inotifywait -e modify s-n-s-bot.py; kill $(jobs -p); done
+  ```
+- Alternatuvely make it a service:
+  ```bash
+  sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py)"
+  ```
 
 
 ## TODO

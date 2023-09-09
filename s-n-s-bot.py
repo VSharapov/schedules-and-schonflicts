@@ -13,6 +13,9 @@ import inspect
 def dbg(message):
     print(f"[Line {inspect.currentframe().f_back.f_lineno}] {message}")
 
+import load_env
+load_env.load()
+
 intents = discord.Intents.default()
 intents.message_content = True
 #intents.reactions = True
@@ -258,5 +261,4 @@ async def on_raw_reaction_add(reactionEvent):
                     )
 
 
-client.run(os.environ.get('SNS_DISCORD_AUTH_TOKEN'))
-
+client.run(os.environ.get('DISCORD_AUTH_TOKEN'))
