@@ -56,7 +56,7 @@ Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Ea
   ```
 - Alternatuvely make it a service:
   ```bash
-  sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py)"
+  sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py"
   ```
 
 
