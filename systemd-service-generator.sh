@@ -4,35 +4,40 @@
 # For a fully featured tool, visit: https://github.com/NunuM/my-systemd-service-file-generator
 # Official systemd service documentation: https://www.freedesktop.org/software/systemd/man/systemd.service.html
 
-# Check if the required arguments are present
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Usage: $0 <shortname> <execstart> [description [restart [user [wantedby]]]]" >&2
+    echo "Usage: $0 <shortname> <execstart> [workingdir=\$(pwd) [description=\"${1:-"<shortname>"} service\" [restart=always [user=\$(whoami) [wantedby=multi-user.target]]]]]" >&2
+    echo "Reminder: Root permissions are required and execstart probably needs quotes." >&2
     echo "Example that uses realpath to disambiguate execstart:" >&2
     echo "\`$0 myservice \"\$(realpath ./venv/bin/python) \$(realpath ./my-script.py)\"\`" >&2
     exit 1
 fi
 
-# Assign arguments to variables
 SHORTNAME=$1
 EXECSTART=$2
-DESCRIPTION=${3:-"A systemd service"}
-RESTART=${4:-"always"}
-USER=${5:-$(whoami)}
-WANTEDBY=${6:-"multi-user.target"}
+WORKINGDIR=${3:-$(pwd)}
+DESCRIPTION=${4:-"$SHORTNAME service"}
+RESTART=${5:-"always"}
+USER=${6:-$(whoami)}
+WANTEDBY=${7:-"multi-user.target"}
+SERVICE_FILE="/etc/systemd/system/${SHORTNAME}.service"
 
-# Check if the service file already exists
-if [ -f "/etc/systemd/system/${SHORTNAME}.service" ]; then
-    echo "Error: Service file /etc/systemd/system/${SHORTNAME}.service already exists." >&2
+if [ -f "$SERVICE_FILE" ]; then
+    echo "Error: $SERVICE_FILE already exists." >&2
     exit 1
 fi
 
-# Generate the service file content
-cat <<EOF > "/etc/systemd/system/${SHORTNAME}.service"
+if [ ! -w "/etc/systemd/system/" ]; then
+    echo "Error: You do not have write permission to /etc/systemd/system/. Try running with sudo." >&2
+    exit 1
+fi
+
+cat <<EOF > "$SERVICE_FILE"
 [Unit]
 Description=$DESCRIPTION
 
 [Service]
 ExecStart=$EXECSTART
+WorkingDirectory=$WORKINGDIR
 Restart=$RESTART
 User=$USER
 
@@ -40,8 +45,10 @@ User=$USER
 WantedBy=$WANTEDBY
 EOF
 
-echo "Generated ${SHORTNAME}.service"
+echo "Generated $SERVICE_FILE"
+echo "---"
+cat "$SERVICE_FILE"
+echo "---"
 
-# Quick common usage summary
 echo "To manage the service, use:"
 echo "sudo systemctl (start|stop|enable|disable|restart) ${SHORTNAME}.service"
