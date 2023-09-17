@@ -1,0 +1,31 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: SSH and deploy
+      run: |
+        mkdir -p ~/.ssh/
+        # An less-robust alternative to running `ssh-keyscan localhost` on the
+        # server and saving it as SSH_KNOWN_HOSTS is just doing it live:
+        # ssh-keyscan -t rsa $SSH_HOST >> ~/.ssh/known_hosts
+        echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+        # ...but this ^^^ feels a little more correct to me
+        echo "${SSH_PRIVATE_KEY}" > private.key
+        chmod 600 private.key
+        ssh -i private.key ${SSH_USER}@${SSH_HOST} "cd $DEPLOY_DIR && git fetch origin master && git reset --hard origin/master && $DEPLOY_COMMAND"
+      shell: bash
+      env:
+        SSH_HOST:        ${{ secrets.SSH_HOST }}
+        SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_USER:        ${{ secrets.SSH_USER }}
+        DEPLOY_DIR:      ${{ secrets.DEPLOY_DIR }}
+        DEPLOY_COMMAND:  ${{ secrets.DEPLOY_COMMAND }}
