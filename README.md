@@ -10,6 +10,24 @@ The best implimentation of the worst scheduling consensus system:
 When someone says they can't make it, the onus is on them to propose a later time.  
 Repeat until all parties can make it ... possibly never!
 
+## Setup
+
+- Find instructions on how to make a discord bot, get to the point where you have a token.
+- ```bash
+  K=DISCORD_AUTH_TOKEN; read -p "$K=" && echo "$K=$REPLY" > $K.env`\
+  virtualenv venv
+  source ./venv/bin/activate
+  pip install -r requirements.txt
+  ```
+- I like making it reload on save when developing:  
+  ```bash
+  while true; do ./s-n-s-bot.py & inotifywait -e modify s-n-s-bot.py; kill $(jobs -p); done
+  ```
+- Alternatuvely make it a service:
+  ```bash
+  sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py"
+  ```
+  
 ## How do I ivoke the bot?
 
 **Alice:** `@🤖`, invite `@Alice`, `@Bob`, and `@Charlie` to Hangout after work  
@@ -28,24 +46,6 @@ The bot will guide you through the rest - starting with asking the organizer `@A
 - Wait for thumbs to be added on
 - On a thumbs down, that user is the new asshole and must propose a new time
 - On final thumbs up it pings everyone and destroys the party
-
-## Setup
-
-- Find instructions on how to make a discord bot, get to the point where you have a token.
-- ```bash
-  K=DISCORD_AUTH_TOKEN; read -p "$K=" && echo "$K=$REPLY" > $K.env`\
-  virtualenv venv
-  source ./venv/bin/activate
-  pip install -r requirements.txt
-  ```
-- I like making it reload on save when developing:  
-  ```bash
-  while true; do ./s-n-s-bot.py & inotifywait -e modify s-n-s-bot.py; kill $(jobs -p); done
-  ```
-- Alternatuvely make it a service:
-  ```bash
-  sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py"
-  ```
 
 ## TODO
 
