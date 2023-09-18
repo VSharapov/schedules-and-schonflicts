@@ -9,9 +9,9 @@ import datetime
 
 from consensus_date_parsing import parse_date
 
-import inspect
+import sys, inspect
 def dbg(message):
-    print(f"[Line {inspect.currentframe().f_back.f_lineno}] {message}")
+    sys.stderr.write(f"[Line {inspect.currentframe().f_back.f_lineno}] {message}")
 
 import load_env
 load_env.load()
