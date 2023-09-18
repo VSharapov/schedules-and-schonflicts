@@ -16,19 +16,52 @@ def dbg(message):
 import load_env
 load_env.load()
 
+import asyncio
+save_lock = asyncio.Lock()
+
+# Things that need to be saved for persistence
+parties = {}               # party name : party
+waiting_message_refs = {}  # ref : party name
+thumbs_message_refs = {}   # ref : party name
+
+import json
+import tempfile
+async def save_state():
+    async with save_lock:
+        data = {
+            "parties": parties,
+            "waiting_message_refs": waiting_message_refs,
+            "thumbs_message_refs": thumbs_message_refs,
+            "timestamp": int(datetime.datetime.now().timestamp())
+        }
+        
+        with tempfile.NamedTemporaryFile('w', dir='.', delete=False) as f:
+            json.dump(data, f)
+        
+        os.rename(f.name, 'saved-state.json')
+
+async def load_state():
+    try:
+        with open('saved-state.json', 'r') as f:
+            data = json.load(f)
+            dbg(f"Loaded state from epoch {data['timestamp']}. "
+                f"Parties: {len(data['parties'])}, "
+                f"Waiting refs: {len(data['waiting_message_refs'])}, "
+                f"Thumbs refs: {len(data['thumbs_message_refs'])}")
+            return data['parties'], data['waiting_message_refs'], data['thumbs_message_refs']
+    except FileNotFoundError:
+        dbg("No save state file - starting fresh")
+        return {}, {}, {}
+
 intents = discord.Intents.default()
 intents.message_content = True
 #intents.reactions = True
 
 client = discord.Client(intents=intents)
 
-# Things that need to be pickled for persistence
-parties = {}               # party name : party
-waiting_message_refs = {}  # ref : party name
-thumbs_message_refs = {}
-
-@client.event
 async def on_ready():
+    global parties, waiting_message_refs, thumbs_message_refs
+    parties, waiting_message_refs, thumbs_message_refs = await load_state()
     dbg(f'Logged in as {client.user}')
 
 def message_references_equal(l: list):
@@ -183,7 +216,7 @@ async def on_message(message):
                     )] = party['name']
                     await sent_message.add_reaction('👍')
                     await sent_message.add_reaction('👎')
-                    party['state_annotation'] = 'waiting for thumbs'
+                    party['state_annotation'] = 'waiting for thumbs' # Don't worry, we're about to save
                     party['asshole_id'] = None
 
                     # Remove wait refs
@@ -200,6 +233,7 @@ async def on_message(message):
                         channel_id = sent_message.channel.id,
                         guild_id   = sent_message.guild.id
                     )] = party['name']
+                await save_state()
                 return
     if not (party := valid_party_creation(message, mention)):
         #dbg('ignoring ' + str(message) + ' because not valid party creation')
@@ -208,7 +242,7 @@ async def on_message(message):
         await message.reply(f'"{party["name"]}" is the name of an exising party')
         return
     party['asshole_id'] = party['organizer_id']
-    party['state_annotation'] = 'asshole detected'
+    party['state_annotation'] = 'asshole detected' # This is a very temporary state, hence no save
     parties[party['name']] = party
     channel = await client.fetch_channel(party['channel_id'])
     sent_message = await channel.send(
@@ -222,6 +256,7 @@ async def on_message(message):
         )] = party['name']
     #dbg(sent_message.reference.message_id)
     party['state_annotation'] = f'waiting on asshole {party["asshole_id"]}'
+    await save_state()
     return
 
 @client.event
@@ -252,6 +287,7 @@ async def on_raw_reaction_add(reactionEvent):
                         )] = party['name']
                     #dbg(sent_message.reference.message_id)
                     party['state_annotation'] = f'waiting on asshole {party["asshole_id"]}'
+                    await save_state()
                     return
                 dbg('was not a thumbs down')
 
