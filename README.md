@@ -49,11 +49,12 @@ The bot will guide you through the rest - starting with asking the organizer `@A
 
 ## TODO
 
-- Save and load to `saved-*.json`
-  - TODO: On load go over watched messages and sync state to reality in case activity was missed
-- Edit old messsages to reflect that they're no longer actively watched
-- gCal API
-  - associate a calendar with each user
-  - TODO: 1 user can have many calendars mapped to specific ... events matching regex?
-- Edit thumbs messages to say "Still waiting on [@user, ...]" when thumbs are modified
-- Some incantation that can be used to destroy the party... maybe reply to the "when" message with "never"
+- [ ] Save and load to `saved-*.json`
+  - [ ] TODO: On load go over watched messages and sync state to reality in case activity was missed
+- [ ] Edit old messsages to reflect that they're no longer actively watched
+- [ ] gCal API
+  - [ ] associate a calendar with each user
+  - [ ] TODO: 1 user can have many calendars mapped to specific ... events matching regex?
+- [ ] Edit thumbs messages to say "Still waiting on [@user, ...]" when thumbs are modified
+- [ ] Some incantation that can be used to destroy the party... maybe reply to the "when" message with "never"
+- [ ] Complain if a new date is not later than the old date, but succumb if it's repeated twice in a row
