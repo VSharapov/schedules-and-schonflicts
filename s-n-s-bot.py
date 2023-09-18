@@ -188,8 +188,31 @@ def ask_party_time_message(pName):
     return '<@' + str(parties[pName]['asshole_id']) + '>, reply to this message with a datetime when you want this to happen:\n' + pName
 
 def poll_message_content(party):
-    # TODO
-    return 'placeholder text for poll_message_content' + pf(party)
+    human_readable_date = datetime.datetime.fromtimestamp(party['proposed_time']).strftime('%Y-%m-%d %H:%M:%S')
+    users_string = '<@' + '>, '.join(map(str, party['attendant_ids'])) + '>'
+    # still_waiting = [k for k, v in party['affirmed_attendance'].items() if not v]
+    return '\n'.join([
+        f'{users_string}',
+        f"<@{party['organizer_id']}> invites all of you to:",
+        f"{party['name']}",
+        'At this time:',
+        f'{human_readable_date}',
+        'If you can make it, give a 👍',
+        f"If you can't, figure out the earliest time after {human_readable_date} that you _would_ be able to attend, and give it a 👎",
+    ])
+
+def finalized_party_message(party):
+    human_readable_date = datetime.datetime.fromtimestamp(party['proposed_time']).strftime('%Y-%m-%d %H:%M:%S')
+    users_string = '<@' + '>, '.join(map(str, party['attendant_ids'])) + '>'
+    return '\n'.join(['Great job everyone',
+                     f'{users_string}',
+                     'You did it',
+                     'You all agreed to attend this event:',
+                     f"{party['name']}",
+                     'At this time:',
+                     f'{human_readable_date}',
+                     f"Amazing, I'm really impressed that {len(party['attendant_ids'])} people could get their shit together",
+                     ])
 
 @client.event
 async def on_message(message):
@@ -228,6 +251,9 @@ async def on_message(message):
                     )] = party['name']
                     await sent_message.add_reaction('👍')
                     await sent_message.add_reaction('👎')
+                    party['affirmed_attendance'] = {}
+                    for k in party['attendant_ids']:
+                        party['affirmed_attendance'][k] = False
                     party['state_annotation'] = 'waiting for thumbs' # Don't worry, we're about to save
                     party['asshole_id'] = None
 
@@ -286,6 +312,7 @@ async def on_raw_reaction_add(reactionEvent):
                 party = parties[thumbs_message_refs[k]]
                 channel = await client.fetch_channel(party['channel_id'])
                 if reactionEvent.emoji.name == "👎":
+                    del thumbs_message_refs[k]
                     party['asshole_id'] = reactionEvent.member.id
                     party['state_annotation'] = 'asshole detected'
                     channel = await client.fetch_channel(party['channel_id'])
@@ -301,12 +328,25 @@ async def on_raw_reaction_add(reactionEvent):
                     party['state_annotation'] = f'waiting on asshole {party["asshole_id"]}'
                     await save_state()
                     return
-                dbg('was not a thumbs down')
+                if reactionEvent.emoji.name == "👍":
+                    if reactionEvent.member.id not in party['attendant_ids']:
+                        await channel.send(f"<@{reactionEvent.member.id}>: Now listen here you little shit, you were not invited to this party and your pesky thumbs-up is being ignored. Go start your own event and invite yourself since you have no friends.")
+                    else:
+                        party['affirmed_attendance'][reactionEvent.member.id] = True
+                        if all(party['affirmed_attendance'].values()):
+                            del thumbs_message_refs[k]
+                            channel = await client.fetch_channel(party['channel_id'])
+                            await channel.send(
+                                    content=finalized_party_message(party)
+                                    )
+                            del parties[party['name']]
+                            await save_state()
+                    return
 
                 # dbg('and in refs')
-                await client.get_partial_messageable(reactionEvent.channel_id).send(
-                    '<@' + str(reactionEvent.user_id) + '> just opined on my poll'
-                    )
+                # await client.get_partial_messageable(reactionEvent.channel_id).send(
+                #     '<@' + str(reactionEvent.user_id) + '> just opined on my poll'
+                #     )
 
 
 client.run(os.environ.get('DISCORD_AUTH_TOKEN'))

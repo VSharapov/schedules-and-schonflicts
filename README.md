@@ -2,31 +2,20 @@
 
 ## Is this ready to go?
 
-Nope, WIP.
-
+Janky but it works
 
 ## What's it supposed to do?
 
-Here's a user story:
+The best implimentation of the worst scheduling consensus system:  
+When someone says they can't make it, the onus is on them to propose a later time.  
+Repeat until all parties can make it ... possibly never!
 
-FYI trying to implement the best worst scheduling system in the world, e.g.:  
-A: /event "poopoo party" with @A @B @C  
-Bot: Okay, when?  
-A: Monday  
-Bot: A invites you to "poopoo party" at 00:00:00 Eastern Time on Monday July 31st 2023 - @A @B @C  
-Bot: {reacts 👍 👎  to self}  
-A: No, wait, that's not what I meant {reacts 👎 }  
-Bot: @A you piece of shit, if you can't make it to "poopoo party" at 00:00:00 Eastern Time on Monday July 31st 2023 then what time is good for you?  
-A: 18:00 Monday  
-Bot: A invites you to "poopoo party" at 18:00:00 Eastern Time on Monday July 31st 2023 - @A @B @C  
-Bot: {reacts 👍 👎  to self}  
-[...]  
-B: {reacts 👎 }  
-Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Eastern Time on Monday July 31st 2023 then what time is good for you?  
-... and so on until everyone 👍
+## How do I ivoke the bot?
 
+**Alice:** `@🤖`, invite `@Alice`, `@Bob`, and `@Charlie` to Hangout after work  
+The bot will guide you through the rest - starting with asking the organizer `@Alice` to propose a time, 
 
-## Progress so far
+## Progress
 
 - Waits for messages similar to:  
   "@bot-user, invite @user1, @user2, [...], and @userN to Arbitrary text name of an event
@@ -37,9 +26,8 @@ Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Ea
 - If no date consensus, ask the asshole again (and wait for replies on both messages)
 - If date consensus, send a confirmation message and add thumbs reactions
 - Wait for thumbs to be added on
-- On a thumbs down, that user is the new asshole
-- NEXT: thumbs up logic
-
+- On a thumbs down, that user is the new asshole and must propose a new time
+- On final thumbs up it pings everyone and destroys the party
 
 ## Setup
 
@@ -59,7 +47,6 @@ Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Ea
   sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py"
   ```
 
-
 ## TODO
 
 - Save and load to `saved-*.json`
@@ -69,3 +56,4 @@ Bot: @B you piece of shit, if you can't make it to "poopoo party" at 18:00:00 Ea
   - associate a calendar with each user
   - TODO: 1 user can have many calendars mapped to specific ... events matching regex?
 - Edit thumbs messages to say "Still waiting on [@user, ...]" when thumbs are modified
+- Some incantation that can be used to destroy the party... maybe reply to the "when" message with "never"
