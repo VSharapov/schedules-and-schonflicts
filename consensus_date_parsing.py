@@ -43,6 +43,7 @@ def parse_date(date_string):
         text = None
     else:
         consensus = False
-        text = f"The parsers disagree on the parsed date:\n```\n{str(detail['success'])}\n```\nTry something less ambiguous."
+        readable = { k: v.strftime('%Y-%m-%d %H:%M:%S') for k, v in detail['success'].items() }
+        text = f"The parsers disagree on the parsed date:\n```\n{str(readable)}\n```\nTry something less ambiguous."
         
     return consensus, detail, text
