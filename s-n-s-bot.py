@@ -11,7 +11,7 @@ from consensus_date_parsing import parse_date
 
 import sys, inspect
 def dbg(message):
-    sys.stderr.write(f"[Line {inspect.currentframe().f_back.f_lineno}] {message}")
+    sys.stderr.write(f"[Line {inspect.currentframe().f_back.f_lineno}] {message}\n")
 
 import load_env
 load_env.load()
@@ -28,10 +28,14 @@ import json
 import tempfile
 async def save_state():
     async with save_lock:
+        serialized_parties = {k: {**v, 'attendant_ids': list(v['attendant_ids'])} for k, v in parties.items()}
+        serialized_waiting_refs = {f"{ref.message_id}-{ref.channel_id}-{ref.guild_id}": v for ref, v in waiting_message_refs.items()}
+        serialized_thumbs_refs = {f"{ref.message_id}-{ref.channel_id}-{ref.guild_id}": v for ref, v in thumbs_message_refs.items()}
+        
         data = {
-            "parties": parties,
-            "waiting_message_refs": waiting_message_refs,
-            "thumbs_message_refs": thumbs_message_refs,
+            "parties": serialized_parties,
+            "waiting_message_refs": serialized_waiting_refs,
+            "thumbs_message_refs": serialized_thumbs_refs,
             "timestamp": int(datetime.datetime.now().timestamp())
         }
         
@@ -44,11 +48,18 @@ async def load_state():
     try:
         with open('saved-state.json', 'r') as f:
             data = json.load(f)
-            dbg(f"Loaded state from epoch {data['timestamp']}. "
-                f"Parties: {len(data['parties'])}, "
-                f"Waiting refs: {len(data['waiting_message_refs'])}, "
-                f"Thumbs refs: {len(data['thumbs_message_refs'])}")
-            return data['parties'], data['waiting_message_refs'], data['thumbs_message_refs']
+        
+        deserialized_parties = {k: {**v, 'attendant_ids': set(v['attendant_ids'])} for k, v in data['parties'].items()}
+        deserialized_waiting_refs = {discord.MessageReference(message_id=int(mid), channel_id=int(cid), guild_id=int(gid)): v 
+                                     for k, v in data['waiting_message_refs'].items() 
+                                     for mid, cid, gid in [k.split('-')]}
+        deserialized_thumbs_refs = {discord.MessageReference(message_id=int(mid), channel_id=int(cid), guild_id=int(gid)): v 
+                                    for k, v in data['thumbs_message_refs'].items() 
+                                    for mid, cid, gid in [k.split('-')]}
+        
+        dbg(f"Loaded state from epoch {data['timestamp']}. Parties: {len(deserialized_parties)}, Waiting refs: {len(deserialized_waiting_refs)}, Thumbs refs: {len(deserialized_thumbs_refs)}")
+        
+        return deserialized_parties, deserialized_waiting_refs, deserialized_thumbs_refs
     except FileNotFoundError:
         dbg("No save state file - starting fresh")
         return {}, {}, {}
@@ -59,6 +70,7 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 
+@client.event
 async def on_ready():
     global parties, waiting_message_refs, thumbs_message_refs
     parties, waiting_message_refs, thumbs_message_refs = await load_state()
