@@ -49,8 +49,9 @@ The bot will guide you through the rest - starting with asking the organizer `@A
 
 ## TODO
 
-- [ ] Save and load to `saved-*.json`
+- [x] Save and load to `saved-*.json`
   - [ ] TODO: On load go over watched messages and sync state to reality in case activity was missed
+  - [ ] TODO: instead of the default tempfile naming scheme use `saved-<epoch with ns>.json`
 - [ ] Edit old messsages to reflect that they're no longer actively watched
 - [ ] gCal API
   - [ ] associate a calendar with each user
