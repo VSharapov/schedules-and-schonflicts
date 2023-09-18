@@ -216,7 +216,7 @@ async def on_message(message):
                 consensus, detail, text = parse_date(message.content)
                 
                 if consensus is True:
-                    party['proposed_time'] = list(detail['success'].values())[0]
+                    party['proposed_time'] = int(list(detail['success'].values())[0].timestamp())
                     sent_message = await channel.send(
                         content=poll_message_content(party),
                         reference=message
