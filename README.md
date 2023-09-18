@@ -27,7 +27,7 @@ Repeat until all parties can make it ... possibly never!
   ```bash
   sudo ./systemd-service-generator.sh ${PWD##*/} "$PWD/venv/bin/python $PWD/s-n-s-bot.py"
   ```
-  
+
 ## How do I ivoke the bot?
 
 **Alice:** `@🤖`, invite `@Alice`, `@Bob`, and `@Charlie` to Hangout after work  
@@ -36,10 +36,10 @@ The bot will guide you through the rest - starting with asking the organizer `@A
 ## Progress
 
 - Waits for messages similar to:  
-  "@bot-user, invite @user1, @user2, [...], and @userN to Arbitrary text name of an event
-- Makes the person who said ^^^ that the party asshole
+  "`@bot-user`, invite `@user1`, `@user2`, [...], and `@userN` to Arbitrary text name of an event
+- Makes the person who said ^^^ that the organizer and current party asshole
 - Asks the asshole when is a good time for the party
-- Wait for replies to the ask message
+- Wait for replies to the "when" message
 - Parse the reply as a date 5 different ways and hope for consensus
 - If no date consensus, ask the asshole again (and wait for replies on both messages)
 - If date consensus, send a confirmation message and add thumbs reactions
