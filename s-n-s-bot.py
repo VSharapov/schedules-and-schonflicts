@@ -189,7 +189,7 @@ def ask_party_time_message(pName):
 
 def poll_message_content(party):
     human_readable_date = datetime.datetime.fromtimestamp(party['proposed_time']).strftime('%Y-%m-%d %H:%M:%S')
-    users_string = '<@' + '>, '.join(map(str, party['attendant_ids'])) + '>'
+    users_string = '<@' + '>, <@'.join(map(str, party['attendant_ids'])) + '>'
     # still_waiting = [k for k, v in party['affirmed_attendance'].items() if not v]
     return '\n'.join([
         f'{users_string}',
